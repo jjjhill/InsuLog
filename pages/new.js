@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
+import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
 import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
@@ -25,6 +26,8 @@ class New extends Component<{}> {
 
   state = {
     savedItems: [],
+    selectedItems: [],
+    totalSelected: 0,
     showSaved:false,
     carbInput: 0,
     bs1:0,
@@ -36,37 +39,116 @@ class New extends Component<{}> {
     [
       {
         id:1,
-        item:'1/4 cup dry rice',
-        carbs:35
+        name:'1/4 cup dry rice',
+        carbs:35,
+        multiplier:1,
       },
       {
         id:2,
-        item:'1 cup french fries',
-        carbs:30
+        name:'1 cup french fries',
+        carbs:30,
+        multiplier:1,
       },
       {
         id:3,
-        item:'pretzel',
-        carbs:70
+        name:'pretzel',
+        carbs:70,
+        multiplier:1,
       },
       {
         id:4,
-        item:'rockets',
-        carbs:7
+        name:'rockets',
+        carbs:7,
+        multiplier:1,
+      },
+      {
+        id:5,
+        name:'milk',
+        carbs:18,
+        multiplier:1,
+      },
+      {
+        id:6,
+        name:'chocolate brownies',
+        carbs:100,
+        multiplier:1,
       },
 
     ];
-    this.setState({savedItems: savedItems})
+    this.setState({
+      savedItems: savedItems,
+      subItems: savedItems,
+    })
   }
   toggleSavedList() {
     this.setState({showSaved: !this.state.showSaved});
   }
+  onItemPress(item){
+    let selectedItems = this.state.selectedItems;
+    let currentIndex = 0;
+    let index = 0;
+    let found=false;
+    selectedItems.forEach(function(element) {
+      if (element.id == item.id) {
+        index = currentIndex;
+        found=true;
+      }
+      currentIndex++;
+    }, this);
+    if (found){
+      selectedItems.splice(index, 1);
+    }
+    else {
+      selectedItems.push(item);
+    }
+    console.log(selectedItems);
+    let total = this.calculateTotalSelected();
+    this.setState({
+      selectedItems: selectedItems,
+      totalSelected: total,
+    });
+  }
+  calculateTotalSelected() {
+    let selected = this.state.selectedItems;
+    let total=0;
+    selected.forEach(function(element) {
+      total += (element.carbs * element.multiplier);
+    }, this);
+    return total;
+  }
   renderSavedItems() {
     return (
-      this.state.savedItems.map((item) => 
-        <SavedItem key={item.id} item={item.item}/>
+      this.state.subItems.map((item) => 
+        <SavedItem key={item.id} item={item} onItemPress={this.onItemPress.bind(this)} selected={this.state.selectedItems} onMultiplierChange={this.onMultiplierChange.bind(this)}/>
       )
     );
+  }
+  onMultiplierChange(item) {
+    let savedItems = this.state.savedItems;
+    savedItems.forEach(function(element) {
+      if (element.id == item.id) {
+        element.multiplier = item.multiplier;
+      }
+    }, this);
+    let total = this.calculateTotalSelected();
+    this.setState({savedItems: savedItems, totalSelected: total});
+  }
+  openMFP(){
+
+  }
+  searchSaved(search) {
+    if (search==''){
+      this.setState({subItems: this.state.savedItems});
+    }
+    else {
+      var options = {
+        keys: ['name'],
+        threshold: 0.6,
+        minMatchCharLength: 2,
+      };
+      var fuse = new Fuse(this.state.savedItems, options);
+      this.setState({subItems: fuse.search(search)});
+    }
   }
   render() {
     return (
@@ -80,12 +162,16 @@ class New extends Component<{}> {
           </TouchableOpacity>
         </View>
         <Display style={styles.savedListStyle} enable={this.state.showSaved}>
+          <View style={{flexDirection:'row', alignSelf:'stretch', alignItems:'center', justifyContent:'center'}}>
+            <Text>Search: </Text>
+            <TextInput value={this.state.savedSearch} onChangeText={(value) => this.searchSaved(value)} style={styles.savedSearch}/>
+          </View>
           <SavedList>
             {this.renderSavedItems()}
           </SavedList>
         </Display>
         <View style={styles.carbRow}>
-          <Text>Carbs</Text>
+          <Text>{this.state.totalSelected} + </Text>
           <TextInput keyboardType='numeric' value={String(this.state.carbInput)} onChangeText={(value) => this.setState({carbInput: value})}/>
         </View>
         <View style={styles.bsRow}>
@@ -94,9 +180,6 @@ class New extends Component<{}> {
     );
   }
 
-  openMFP(){
-
-  }
 }
 
 const styles = StyleSheet.create({
@@ -108,15 +191,13 @@ const styles = StyleSheet.create({
     padding:10,
   },
   upperButtons: {
-    flex:1,
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'space-between',
   },
   savedListStyle: {
-    marginRight:10,
-    marginLeft:10,
-    flex:1,
+    alignSelf:'stretch',
+    height:300,
   },
   mfpButton: {
     backgroundColor:'red',
@@ -126,7 +207,6 @@ const styles = StyleSheet.create({
     marginLeft:10,
   },
   carbRow: {
-    flex:1,
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'space-between',
@@ -139,6 +219,9 @@ const styles = StyleSheet.create({
     justifyContent:'space-between',
 
   },
+  savedSearch: {
+    flex:1,
+  }
 });
 
 export default New;

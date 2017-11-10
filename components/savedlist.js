@@ -1,12 +1,14 @@
 import React, {Component} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {StyleSheet, View, ScrollView} from 'react-native';
 
 
 const SavedList = (props) => {
   
     return (
         <View style = {styles.listBackground}>
-            {props.children}
+            <ScrollView>
+                {props.children}
+            </ScrollView>
         </View>
     );
 
@@ -15,7 +17,6 @@ const SavedList = (props) => {
 const styles = StyleSheet.create({
     listBackground: {
         flex:1,
-        backgroundColor:'green',
     }
 });
 
