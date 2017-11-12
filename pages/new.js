@@ -14,6 +14,8 @@ import {
   Picker,
   TouchableOpacity,
   TextInput,
+  Alert,
+  ScrollView,
 } from 'react-native';
 import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -21,17 +23,20 @@ import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
 
-
+var ratio = 18.0;
+var correction = 3.5;
+var target = 5.0;
 class New extends Component<{}> {
 
   state = {
     savedItems: [],
     selectedItems: [],
-    totalSelected: 0,
+    carbSelected: 0,
     showSaved:false,
     carbInput: 0,
-    bs1:0,
-    bs2:0,
+    currentBS:0.0,
+    dosageText:'',
+    custom:'',
   };
 
   componentWillMount() {
@@ -105,7 +110,7 @@ class New extends Component<{}> {
     let total = this.calculateTotalSelected();
     this.setState({
       selectedItems: selectedItems,
-      totalSelected: total,
+      carbSelected: total,
     });
   }
   calculateTotalSelected() {
@@ -131,7 +136,7 @@ class New extends Component<{}> {
       }
     }, this);
     let total = this.calculateTotalSelected();
-    this.setState({savedItems: savedItems, totalSelected: total});
+    this.setState({savedItems: savedItems, carbSelected: total});
   }
   openMFP(){
 
@@ -150,33 +155,68 @@ class New extends Component<{}> {
       this.setState({subItems: fuse.search(search)});
     }
   }
+  getDose() {
+    if (this.state.currentBS == '') {
+      alert('Enter Blood Sugar');
+    }
+    else {
+      let bs = this.state.currentBS;
+      let carbs = parseFloat(this.state.carbInput) + parseFloat(this.state.carbSelected);
+      let total = carbs/ratio + (bs-target)/correction;
+      this.setState({dosageText: 'Take ' + total + ' units.'});
+    }
+  }
   render() {
     return (
-      <View style={styles.container}>
-        <View style={styles.upperButtons}>
-          <TouchableOpacity style={styles.mfpButton} onPress={this.toggleSavedList.bind(this)}>
-            <Text style={{fontSize:25}}>Saved</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.mfpButton} onPress={this.openMFP.bind(this)}>
-            <Text style={{fontSize:25}}>MFP</Text>
-          </TouchableOpacity>
-        </View>
-        <Display style={styles.savedListStyle} enable={this.state.showSaved}>
-          <View style={{flexDirection:'row', alignSelf:'stretch', alignItems:'center', justifyContent:'center'}}>
-            <Text>Search: </Text>
-            <TextInput value={this.state.savedSearch} onChangeText={(value) => this.searchSaved(value)} style={styles.savedSearch}/>
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.upperButtons}>
+            <TouchableOpacity style={styles.mfpButton} onPress={this.toggleSavedList.bind(this)}>
+              <Text style={{fontSize:25}}>Saved</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.mfpButton} onPress={this.openMFP.bind(this)}>
+              <Text style={{fontSize:25}}>MFP</Text>
+            </TouchableOpacity>
           </View>
-          <SavedList>
-            {this.renderSavedItems()}
-          </SavedList>
-        </Display>
-        <View style={styles.carbRow}>
-          <Text>{this.state.totalSelected} + </Text>
-          <TextInput keyboardType='numeric' value={String(this.state.carbInput)} onChangeText={(value) => this.setState({carbInput: value})}/>
+          <Display style={styles.savedListStyle} enable={this.state.showSaved}>
+            <View style={{flexDirection:'row', alignSelf:'stretch', alignItems:'center', justifyContent:'center'}}>
+              <Text>Search: </Text>
+              <TextInput value={this.state.savedSearch} onChangeText={(value) => this.searchSaved(value)} style={styles.savedSearch}/>
+            </View>
+            <SavedList>
+              {this.renderSavedItems()}
+            </SavedList>
+          </Display>
+          <View style={styles.carbRow}>
+            <Text>Carbs:  {this.state.carbSelected} + </Text>
+            <TextInput keyboardType='numeric' value={String(this.state.carbInput)} onChangeText={(value) => this.setState({carbInput: value})} style={{width:40}}/>
+          </View>
+          <View style={styles.bsRow}>
+            <Text>Current Blood Sugar: </Text>
+            <TextInput keyboardType='numeric' value={String(this.state.currentBS)} onChangeText={(value) => this.setState({currentBS: value})} style={{width:40}}/>
+          </View>
+          <TouchableOpacity style={styles.getDoseRow} onPress={() => this.getDose()} activeOpacity={0.8}>
+            <Text>Get Dose</Text>
+          </TouchableOpacity>
+          <View style={styles.dosageRow}>
+            <Text>{this.state.dosageText}</Text>
+          </View>
+          <View style={styles.saveRow}>
+            <View style={styles.customColumn}>
+              <Text>Custom Dose</Text>
+              <TextInput keyboardType='numeric' value={String(this.state.custom)} onChangeText={(value) => this.setState({custom: value})} style={{width:80}}/>
+            </View>
+            <View style={styles.buttonColumn}>
+              <TouchableOpacity style={styles.saveButton} onPress={() => this.saveRecommended()} activeOpacity={0.8} >
+                <Text>Save Recommended</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={() => this.saveCustom()} activeOpacity={0.8} >
+                <Text>Save Custom</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
-        <View style={styles.bsRow}>
-        </View>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -185,7 +225,6 @@ class New extends Component<{}> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
     padding:10,
@@ -213,7 +252,6 @@ const styles = StyleSheet.create({
 
   },
   bsRow: {
-    flex:1,
     flexDirection:'row',
     alignItems:'center',
     justifyContent:'space-between',
@@ -221,6 +259,40 @@ const styles = StyleSheet.create({
   },
   savedSearch: {
     flex:1,
+  },
+  getDoseRow: {
+    marginHorizontal:40,
+    marginVertical:20,
+    backgroundColor:'lightblue',
+    height:40,
+    alignSelf:'stretch',
+    alignItems:'center',
+    justifyContent:'center',
+  },
+  dosageRow: {
+    alignItems:'center',
+  },
+  saveRow: {
+    margin:10,
+    flexDirection:'row',
+  },
+  customColumn: {
+    flex:1,
+    flexDirection:'column',
+    height:60,
+  },
+  buttonColumn: {
+    flex:1,
+    flexDirection:'column',
+    height:60,
+  },
+  saveButton: {
+    flex:1,
+    margin:2,
+    backgroundColor:'lightblue',
+    alignSelf:'stretch',
+    alignItems:'center',
+    justifyContent:'center',
   }
 });
 
