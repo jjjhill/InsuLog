@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
+import axios from 'axios';
 import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
@@ -30,65 +31,44 @@ class New extends Component<{}> {
 
   state = {
     savedItems: [],
+    subItems: [],
     selectedItems: [],
     carbSelected: 0,
     showSaved:false,
+    showAdd:false,
     carbInput: 0,
     currentBS:0.0,
     dosageText:'',
+    recommended:'',
     custom:'',
+    savedName:'',
+    savedCarbs:'',
   };
 
   componentWillMount() {
-    let savedItems =
-    [
-      {
-        id:1,
-        name:'1/4 cup dry rice',
-        carbs:35,
-        multiplier:1,
-      },
-      {
-        id:2,
-        name:'1 cup french fries',
-        carbs:30,
-        multiplier:1,
-      },
-      {
-        id:3,
-        name:'pretzel',
-        carbs:70,
-        multiplier:1,
-      },
-      {
-        id:4,
-        name:'rockets',
-        carbs:7,
-        multiplier:1,
-      },
-      {
-        id:5,
-        name:'milk',
-        carbs:18,
-        multiplier:1,
-      },
-      {
-        id:6,
-        name:'chocolate brownies',
-        carbs:100,
-        multiplier:1,
-      },
-
-    ];
-    this.setState({
-      savedItems: savedItems,
-      subItems: savedItems,
-    })
+    this.getSaved();
+  }
+  getSaved() {
+    try {
+      fetch('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved')
+      .then(response => {
+        let json = response.json();
+        json.then(res => {
+          //add multiplier property to each element (because it's not stored in DB)
+          res.forEach(function(element) {
+            element.multiplier = 1;
+          }, this);
+          this.setState({savedItems: res, subItems: res})
+        });
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
   toggleSavedList() {
     this.setState({showSaved: !this.state.showSaved});
   }
-  onItemPress(item){
+  onItemPress(item) {
     let selectedItems = this.state.selectedItems;
     let currentIndex = 0;
     let index = 0;
@@ -106,7 +86,6 @@ class New extends Component<{}> {
     else {
       selectedItems.push(item);
     }
-    console.log(selectedItems);
     let total = this.calculateTotalSelected();
     this.setState({
       selectedItems: selectedItems,
@@ -124,7 +103,14 @@ class New extends Component<{}> {
   renderSavedItems() {
     return (
       this.state.subItems.map((item) => 
-        <SavedItem key={item.id} item={item} onItemPress={this.onItemPress.bind(this)} selected={this.state.selectedItems} onMultiplierChange={this.onMultiplierChange.bind(this)}/>
+        <SavedItem 
+          key={item.id} 
+          item={item} 
+          onItemPress={this.onItemPress.bind(this)} 
+          selected={this.state.selectedItems} 
+          onMultiplierChange={this.onMultiplierChange.bind(this)}
+          deleteSaved={this.getSaved.bind(this)}
+        />
       )
     );
   }
@@ -163,60 +149,101 @@ class New extends Component<{}> {
       let bs = this.state.currentBS;
       let carbs = parseFloat(this.state.carbInput) + parseFloat(this.state.carbSelected);
       let total = carbs/ratio + (bs-target)/correction;
-      this.setState({dosageText: 'Take ' + total + ' units.'});
+      this.setState({recommended: total, dosageText: 'Take ' + total + ' units.'});
     }
+  }
+  addPress() {
+    if (!this.state.showAdd) {
+      this.setState({showAdd: true});
+    }
+    else {
+      if (this.state.savedName != '' && this.state.savedCarbs != '') {
+        this.addSaved();        
+      }
+      this.setState({showAdd:false, savedName:'', savedCarbs:''});
+    }
+  }
+  addSaved() {
+    let name = this.state.savedName;
+    let carbs = this.state.savedCarbs;
+    console.log(JSON.stringify({
+      name: name,
+      carbs: carbs,
+    }));
+    axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', {name: name, carbs: carbs})
+    .then(() => this.getSaved());
+
+  }
+  saveLog(mode) {
+    var dose, isCustom=false;
+    if (mode==0)
+      dose = parseFloat(this.state.recommended);
+    else {
+      dose = parseFloat(this.state.custom);
+      isCustom=true;
+    }
+
+    let carbs = this.state.carbInput + this.state.carbSelected;
+    let bs = this.state.currentBS;
   }
   render() {
     return (
-      <ScrollView>
-        <View style={styles.container}>
-          <View style={styles.upperButtons}>
-            <TouchableOpacity style={styles.mfpButton} onPress={this.toggleSavedList.bind(this)}>
-              <Text style={{fontSize:25}}>Saved</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.mfpButton} onPress={this.openMFP.bind(this)}>
-              <Text style={{fontSize:25}}>MFP</Text>
-            </TouchableOpacity>
-          </View>
-          <Display style={styles.savedListStyle} enable={this.state.showSaved}>
-            <View style={{flexDirection:'row', alignSelf:'stretch', alignItems:'center', justifyContent:'center'}}>
-              <Text>Search: </Text>
-              <TextInput value={this.state.savedSearch} onChangeText={(value) => this.searchSaved(value)} style={styles.savedSearch}/>
-            </View>
-            <SavedList>
-              {this.renderSavedItems()}
-            </SavedList>
-          </Display>
-          <View style={styles.carbRow}>
-            <Text>Carbs:  {this.state.carbSelected} + </Text>
-            <TextInput keyboardType='numeric' value={String(this.state.carbInput)} onChangeText={(value) => this.setState({carbInput: value})} style={{width:40}}/>
-          </View>
-          <View style={styles.bsRow}>
-            <Text>Current Blood Sugar: </Text>
-            <TextInput keyboardType='numeric' value={String(this.state.currentBS)} onChangeText={(value) => this.setState({currentBS: value})} style={{width:40}}/>
-          </View>
-          <TouchableOpacity style={styles.getDoseRow} onPress={() => this.getDose()} activeOpacity={0.8}>
-            <Text>Get Dose</Text>
+      <View style={styles.container}>
+        <View style={styles.upperButtons}>
+          <TouchableOpacity style={styles.mfpButton} onPress={this.toggleSavedList.bind(this)}>
+            <Text style={{fontSize:25}}>Saved</Text>
           </TouchableOpacity>
-          <View style={styles.dosageRow}>
-            <Text>{this.state.dosageText}</Text>
+          <TouchableOpacity style={styles.mfpButton} onPress={this.openMFP.bind(this)}>
+            <Text style={{fontSize:25}}>MFP</Text>
+          </TouchableOpacity>
+        </View>
+        <Display style={styles.savedListStyle} enable={this.state.showSaved}>
+          <View style={{flexDirection:'row', alignSelf:'stretch', alignItems:'center', justifyContent:'center'}}>
+            <Text>Search: </Text>
+            <TextInput value={this.state.savedSearch} onChangeText={(value) => this.searchSaved(value)} style={styles.savedSearch}/>
+            <TouchableOpacity style={styles.addButton} onPress={() => this.addPress()}>
+              <Text style={{fontSize:20, color:'white'}}>+</Text>
+            </TouchableOpacity>
           </View>
-          <View style={styles.saveRow}>
-            <View style={styles.customColumn}>
-              <Text>Custom Dose</Text>
-              <TextInput keyboardType='numeric' value={String(this.state.custom)} onChangeText={(value) => this.setState({custom: value})} style={{width:80}}/>
-            </View>
-            <View style={styles.buttonColumn}>
-              <TouchableOpacity style={styles.saveButton} onPress={() => this.saveRecommended()} activeOpacity={0.8} >
-                <Text>Save Recommended</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={() => this.saveCustom()} activeOpacity={0.8} >
-                <Text>Save Custom</Text>
-              </TouchableOpacity>
-            </View>
+          <Display style={styles.addSavedRow} enable={this.state.showAdd}>
+            <Text>Name: </Text>
+            <TextInput value={this.state.savedName} onChangeText={(value) => this.setState({savedName: value})} style={{flex:3}}/>
+            <Text>Carbs: </Text>
+            <TextInput value={this.state.savedCarbs} onChangeText={(value) => this.setState({savedCarbs: value})} style={{flex:1}}/>
+          </Display>
+          <SavedList>
+            {this.renderSavedItems()}
+          </SavedList>
+        </Display>
+        <View style={styles.carbRow}>
+          <Text>Carbs:  {this.state.carbSelected} + </Text>
+          <TextInput keyboardType='numeric' value={String(this.state.carbInput)} onChangeText={(value) => this.setState({carbInput: value})} style={{width:40}}/>
+        </View>
+        <View style={styles.bsRow}>
+          <Text>Current Blood Sugar: </Text>
+          <TextInput keyboardType='numeric' value={String(this.state.currentBS)} onChangeText={(value) => this.setState({currentBS: value})} style={{width:40}}/>
+        </View>
+        <TouchableOpacity style={styles.getDoseRow} onPress={() => this.getDose()} activeOpacity={0.8}>
+          <Text>Get Dose</Text>
+        </TouchableOpacity>
+        <View style={styles.dosageRow}>
+          <Text>{this.state.dosageText}</Text>
+        </View>
+        <View style={styles.saveRow}>
+          <View style={styles.customColumn}>
+            <Text>Custom Dose</Text>
+            <TextInput keyboardType='numeric' value={String(this.state.custom)} onChangeText={(value) => this.setState({custom: value})} style={{width:80}}/>
+          </View>
+          <View style={styles.buttonColumn}>
+            <TouchableOpacity style={styles.saveButton} onPress={() => this.saveLog(0)} activeOpacity={0.8} >
+              <Text>Save Recommended</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.saveButton} onPress={() => this.saveLog(1)} activeOpacity={0.8} >
+              <Text>Save Custom</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
+      </View>
     );
   }
 
@@ -235,8 +262,8 @@ const styles = StyleSheet.create({
     justifyContent:'space-between',
   },
   savedListStyle: {
+    flex:1,
     alignSelf:'stretch',
-    height:300,
   },
   mfpButton: {
     backgroundColor:'red',
@@ -293,7 +320,18 @@ const styles = StyleSheet.create({
     alignSelf:'stretch',
     alignItems:'center',
     justifyContent:'center',
-  }
+  },
+  addSavedRow: {
+    flexDirection:'row',
+    alignItems:'center',
+  },
+  addButton: {
+    backgroundColor:'black',
+    alignItems:'center',
+    justifyContent:'center',
+    height:30,
+    width:30,
+  },
 });
 
 export default New;

@@ -1,5 +1,6 @@
 import React, {Component} from 'react';
-import {StyleSheet, View, Text, TouchableOpacity, TextInput} from 'react-native';
+import {StyleSheet, View, Text, TouchableOpacity, TextInput, Alert, WebView} from 'react-native';
+import axios from 'axios';
 
 class SavedItem extends Component {
     
@@ -13,9 +14,22 @@ class SavedItem extends Component {
                 this.setState({selected:true});
         }, this);
     }
+    itemLongPress() {
+        Alert.alert(
+            'Delete',
+            'Do you want to delete this saved item?',
+            [
+              {text: 'Cancel', onPress: () => {}, style: 'cancel'},
+              {text: 'Delete', onPress: () => 
+                axios.delete('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', { params: { id: this.props.item.id } })
+                    .then(() => this.props.deleteSaved())
+                }
+            ]
+          )
+    }
     render() {
         return (
-            <TouchableOpacity style={[styles.itemBackground, {backgroundColor: this.state.selected?'lawngreen':'green'}]} activeOpacity={0.8} onPress={() => this.itemPress()}>
+            <TouchableOpacity style={[styles.itemBackground, {backgroundColor: this.state.selected?'lawngreen':'green'}]} activeOpacity={0.8} onPress={() => this.itemPress()} onLongPress={() => this.itemLongPress()}>
                 <View style={{flex:1}}>
                     <Text>{this.props.item.name}</Text>
                 </View>
@@ -30,7 +44,7 @@ class SavedItem extends Component {
     onMultiplierChange(value) {
         this.setState({multiplier: value})
         let item = this.props.item;
-        item.multiplier = value == '' ? 1 : parseInt(value);
+        item.multiplier = value == '' ? 1 : parseFloat(value);
         this.props.onMultiplierChange(item);
     }
     itemPress() {
