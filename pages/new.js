@@ -20,6 +20,7 @@ import {
 import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
 import axios from 'axios';
+import moment from 'moment';
 import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
@@ -166,10 +167,6 @@ class New extends Component<{}> {
   addSaved() {
     let name = this.state.savedName;
     let carbs = this.state.savedCarbs;
-    console.log(JSON.stringify({
-      name: name,
-      carbs: carbs,
-    }));
     axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', {name: name, carbs: carbs})
     .then(() => this.getSaved());
 
@@ -185,6 +182,16 @@ class New extends Component<{}> {
 
     let carbs = this.state.carbInput + this.state.carbSelected;
     let bs = this.state.currentBS;
+
+    axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', {timeLogged: moment(), glucose: bs, dose: dose, carbs: carbs, isCustomDose: isCustom, notes: 'test'})
+    .then((response) => console.log(response));
+    
+    console.log(this.state.selectedItems);
+    this.state.selectedItems.forEach(item => {
+      axios.put('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', {
+        id: item.id,
+      }).then((res) => console.log(res));
+    });
   }
   render() {
     return (

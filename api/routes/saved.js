@@ -27,6 +27,17 @@ router.get('/:id?', function(req, res, next) {
   }
 });
 
+router.put('/', function(req, res, next) {
+  Send.addUsage(req.body, function(err, rows){
+    if (err) {
+      res.json(err);
+    }
+    else {
+      res.json(rows);
+    }
+  });
+});
+
 router.post('/', function(req, res, next) {
   Send.addSaved(req.body, function(err, rows){
     if (err) {

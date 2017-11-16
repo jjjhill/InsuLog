@@ -6,26 +6,65 @@
 
 import React, { Component } from 'react';
 import {
-  Platform,
   StyleSheet,
   Text,
-  View
+  View,
+  ScrollView
 } from 'react-native';
-
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+import Log from '../components/log';
 
 export default class Logs extends Component<{}> {
+  state = {
+    logs: [],
+  }
+  componentWillMount() {
+    try {
+      fetch('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs')
+      .then(response => {
+        let json = response.json();
+        json.then(res => {
+          this.setState({logs: res})
+        });
+      });
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  renderLogs() {
+    return (
+      this.state.logs.map( (log) => 
+        <Log
+          key={log.id}
+          log={log}
+        />
+      )
+    );
+  }
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>
-            Log Page
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={{flex:2, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+            <Text style={styles.headerText}>Time</Text>
+          </View>
+          <View style={{flex:1, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+            <Text style={styles.headerText}>B.S.</Text>
+          </View>
+          <View style={{flex:1, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+            <Text style={styles.headerText}>Carbs</Text>
+          </View>
+          <View style={{flex:1, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+            <Text style={styles.headerText}>Dose</Text>
+          </View>
+          <View style={{flex:2, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+            <Text style={styles.headerText}>Note</Text>
+          </View>
+        </View>
+        <View style={{flex:10}}>
+          <ScrollView style={styles.logRows}>
+            {this.renderLogs()}
+          </ScrollView>
+        </View>
       </View>
     );
   }
@@ -34,18 +73,21 @@ export default class Logs extends Component<{}> {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    alignSelf:'stretch',
+    backgroundColor: 'white',
+    padding:2,
   },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+  headerRow: {
+      flex:1,
+      flexDirection:'row',
+      marginBottom:2,
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  logRows: {
+    flex:1,
   },
+  headerText: {
+    color:'white',
+    fontSize:16,
+    fontFamily:'franklin',
+  }
 });
