@@ -96,8 +96,10 @@ class New extends Component<{}> {
   calculateTotalSelected() {
     let selected = this.state.selectedItems;
     let total=0;
+    let mult;
     selected.forEach(function(element) {
-      total += (element.carbs * element.multiplier);
+      mult = element.multiplier === '' ? 1 : parseFloat(element.multiplier);
+      total += (element.carbs * mult);
     }, this);
     return total;
   }
@@ -172,36 +174,39 @@ class New extends Component<{}> {
 
   }
   saveLog(mode) {
-    var dose, isCustom=false;
+    var dose;
     if (mode==0)
-      dose = parseFloat(this.state.recommended);
+      dose = parseFloat(this.state.recommended).toFixed(1);
     else {
-      dose = parseFloat(this.state.custom);
-      isCustom=true;
+      dose = parseFloat(this.state.custom).toFixed(1);
     }
 
     let carbs = this.state.carbInput + this.state.carbSelected;
-    let bs = this.state.currentBS;
-
-    axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', {timeLogged: moment(), glucose: bs, dose: dose, carbs: carbs, isCustomDose: isCustom, notes: 'test'})
-    .then((response) => console.log(response));
+    carbs = Math.round(carbs);
+    let bs = parseFloat(this.state.currentBS).toFixed(1);
+    let notes = '';
     
-    console.log(this.state.selectedItems);
     this.state.selectedItems.forEach(item => {
+      notes=notes+item.name+"(x"+item.multiplier+"), ";
       axios.put('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', {
         id: item.id,
       }).then((res) => console.log(res));
     });
+    notes=notes.slice(0,-1);
+    notes=notes.slice(0,-1);
+
+    axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', {glucose: bs, dose: dose, carbs: carbs, isCustomDose: mode, notes: notes})
+    .then((response) => console.log(response));
   }
   render() {
     return (
       <View style={styles.container}>
         <View style={styles.upperButtons}>
           <TouchableOpacity style={styles.mfpButton} onPress={this.toggleSavedList.bind(this)}>
-            <Text style={{fontSize:25}}>Saved</Text>
+            <Text style={{fontSize:25, color:'white'}}>Saved</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.mfpButton} onPress={this.openMFP.bind(this)}>
-            <Text style={{fontSize:25}}>MFP</Text>
+            <Text style={{fontSize:25, color:'white'}}>MFP</Text>
           </TouchableOpacity>
         </View>
         <Display style={styles.savedListStyle} enable={this.state.showSaved}>
@@ -231,7 +236,7 @@ class New extends Component<{}> {
           <TextInput keyboardType='numeric' value={String(this.state.currentBS)} onChangeText={(value) => this.setState({currentBS: value})} style={{width:40}}/>
         </View>
         <TouchableOpacity style={styles.getDoseRow} onPress={() => this.getDose()} activeOpacity={0.8}>
-          <Text>Get Dose</Text>
+          <Text style={{fontSize:16, color:'white'}}>Get Dose</Text>
         </TouchableOpacity>
         <View style={styles.dosageRow}>
           <Text>{this.state.dosageText}</Text>
@@ -243,10 +248,10 @@ class New extends Component<{}> {
           </View>
           <View style={styles.buttonColumn}>
             <TouchableOpacity style={styles.saveButton} onPress={() => this.saveLog(0)} activeOpacity={0.8} >
-              <Text>Save Recommended</Text>
+              <Text style={{color:'white'}}>Save Recommended</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.saveButton} onPress={() => this.saveLog(1)} activeOpacity={0.8} >
-              <Text>Save Custom</Text>
+              <Text style={{color:'white'}}>Save Custom</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -273,11 +278,10 @@ const styles = StyleSheet.create({
     alignSelf:'stretch',
   },
   mfpButton: {
-    backgroundColor:'red',
+    backgroundColor:'black',
     alignItems:'center',
     flex:1,
-    marginRight:10,
-    marginLeft:10,
+    marginHorizontal:2,
   },
   carbRow: {
     flexDirection:'row',
@@ -297,7 +301,7 @@ const styles = StyleSheet.create({
   getDoseRow: {
     marginHorizontal:40,
     marginVertical:20,
-    backgroundColor:'lightblue',
+    backgroundColor:'black',
     height:40,
     alignSelf:'stretch',
     alignItems:'center',
@@ -323,7 +327,7 @@ const styles = StyleSheet.create({
   saveButton: {
     flex:1,
     margin:2,
-    backgroundColor:'lightblue',
+    backgroundColor:'black',
     alignSelf:'stretch',
     alignItems:'center',
     justifyContent:'center',

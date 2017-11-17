@@ -5,13 +5,14 @@ import {
   View,
   ScrollView
 } from 'react-native';
+import moment from 'moment';
 
 export default class Log extends Component<{}> {
   render() {
     return (
         <View style={styles.row}>
           <View style={{flex:2, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
-            <Text style={styles.logText}>{this.props.log.timeLogged}</Text>
+            <Text style={styles.logText}>{String(moment(this.props.log.timeLogged).fromNow())}</Text>
           </View>
           <View style={{flex:1, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
             <Text style={styles.logText}>{this.props.log.glucose}</Text>

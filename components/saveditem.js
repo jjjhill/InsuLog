@@ -6,7 +6,6 @@ class SavedItem extends Component {
     
     state = {
         selected: false,
-        multiplier: this.props.item.multiplier,
     }
     componentDidMount() {
         this.props.selected.forEach(function(element) {
@@ -29,22 +28,21 @@ class SavedItem extends Component {
     }
     render() {
         return (
-            <TouchableOpacity style={[styles.itemBackground, {backgroundColor: this.state.selected?'lawngreen':'green'}]} activeOpacity={0.8} onPress={() => this.itemPress()} onLongPress={() => this.itemLongPress()}>
+            <TouchableOpacity style={[styles.itemBackground, {backgroundColor: this.state.selected?'darkblue':'black'}]} activeOpacity={0.8} onPress={() => this.itemPress()} onLongPress={() => this.itemLongPress()}>
                 <View style={{flex:1}}>
-                    <Text>{this.props.item.name}</Text>
+                    <Text style={{color:'white'}}>{this.props.item.name}</Text>
                 </View>
-                <Text>{this.props.item.carbs}</Text>
-                <Text style={{fontSize:20}}> (</Text>
-                <Text>x</Text>
-                <TextInput style={{width:35}} keyboardType={'numeric'} onChangeText={(value) => this.onMultiplierChange(value)} value={this.state.multiplier == 1 ? '' : String(this.state.multiplier)}/>
-                <Text style={{fontSize:20}}> )</Text>
+                <Text style={{color:'white'}}>{this.props.item.carbs}</Text>
+                <Text style={{fontSize:20, color:'white'}}> (</Text>
+                <Text style={{color:'white'}}>x</Text>
+                <TextInput style={{width:35, color:'white'}} keyboardType={'numeric'} onChangeText={(value) => this.onMultiplierChange(value)} value={String(this.props.item.multiplier)}/>
+                <Text style={{fontSize:20, color:'white'}}> )</Text>
             </TouchableOpacity>
         );
     }
     onMultiplierChange(value) {
-        this.setState({multiplier: value})
         let item = this.props.item;
-        item.multiplier = value == '' ? 1 : parseFloat(value);
+        item.multiplier = value===''? '' : value;
         this.props.onMultiplierChange(item);
     }
     itemPress() {
