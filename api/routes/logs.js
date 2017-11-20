@@ -38,4 +38,15 @@ router.post('/', function(req, res, next) {
   });
 });
 
+router.delete('/', function(req, res, next) {
+  Send.deleteLog(req.query, function(err, rows){
+    if (err) {
+      res.json(err);
+    }
+    else {
+      res.json(rows);
+    }
+  });
+});
+
 module.exports = router;

@@ -3,14 +3,30 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView
+  ScrollView,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
 import moment from 'moment';
+import axios from 'axios';
 
 export default class Log extends Component<{}> {
+  logLongPress() {
+      Alert.alert(
+          'Delete',
+          'Do you want to delete this log?',
+          [
+            {text: 'Cancel', onPress: () => {}, style: 'cancel'},
+            {text: 'Delete', onPress: () => 
+              axios.delete('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', { params: { id: this.props.log.id } })
+                  .then(() => this.props.deleteLog())
+              }
+          ]
+        )
+  }
   render() {
     return (
-        <View style={styles.row}>
+        <TouchableOpacity style={styles.row} onLongPress={() => this.logLongPress()} activeOpacity={0.8}>
           <View style={{flex:2, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
             <Text style={styles.logText}>{String(moment(this.props.log.timeLogged).fromNow())}</Text>
           </View>
@@ -23,10 +39,10 @@ export default class Log extends Component<{}> {
           <View style={{flex:1, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
             <Text style={styles.logText}>{this.props.log.dose}</Text>
           </View>
-          <View style={{flex:2, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+          <View style={{flex:3, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
             <Text style={styles.logText}>{this.props.log.note}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
     );   
   }
 }

@@ -18,6 +18,9 @@ export default class Logs extends Component<{}> {
     logs: [],
   }
   componentWillMount() {
+    this.getLogs();
+  }
+  getLogs() {
     try {
       fetch('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs')
       .then(response => {
@@ -36,6 +39,7 @@ export default class Logs extends Component<{}> {
         <Log
           key={log.id}
           log={log}
+          deleteLog={this.getLogs.bind(this)}
         />
       )
     );
@@ -56,7 +60,7 @@ export default class Logs extends Component<{}> {
           <View style={{flex:1, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
             <Text style={styles.headerText}>Dose</Text>
           </View>
-          <View style={{flex:2, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
+          <View style={{flex:3, backgroundColor:'black', alignItems:'center', justifyContent:'center',marginHorizontal:2,}}>
             <Text style={styles.headerText}>Note</Text>
           </View>
         </View>

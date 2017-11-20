@@ -6,20 +6,26 @@ import BurgerMenu from './components/burgermenu';
 import New from './pages/new';
 import Logs from './pages/logs';
 import Settings from './pages/settings';
-
+import MFP from './pages/mfp';
 
 
 const Drawer = DrawerNavigator({
     New: {
       screen: New,
       navigationOptions: {
-        tabBarLabel: 'New Log',
+        title: 'New',
       },
     },
     Logs: {
       screen: Logs,
       navigationOptions: {
-        title: 'View Logs',
+        title: 'Logs',
+      },
+    },
+    MFP: {
+      screen: MFP,
+      navigationOptions: {
+        title: 'My Fitness Pal Search',
       },
     },
     Settings: {
@@ -34,6 +40,12 @@ export const Root = StackNavigator({
     Drawer: {
       screen: Drawer,
     },
+    Logs: {
+      screen: Logs,
+    },
+    MFP: {
+      screen: MFP,
+    }
 }, 
 {
     navigationOptions:(props) => ({

@@ -42,7 +42,7 @@ class SavedItem extends Component {
     }
     onMultiplierChange(value) {
         let item = this.props.item;
-        item.multiplier = value===''? '' : value;
+        item.multiplier = value;
         this.props.onMultiplierChange(item);
     }
     itemPress() {

@@ -15,6 +15,9 @@ var Send={
   addLog:function(body, callback){
     return db.query("INSERT INTO Logs (glucose, dose, carbs, isCustomDose, note) VALUES (\'" + body.glucose + "\',\'" + body.dose + "\',\'" + body.carbs + "\',\'" + body.isCustomDose + "\',\'" + body.notes + "\')", callback);
   },
+  deleteLog:function(query, callback){
+    return db.query("DELETE FROM Logs WHERE id = \'"+query.id+"\'", callback);
+  },
 
 
 };

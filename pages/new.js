@@ -16,6 +16,7 @@ import {
   TextInput,
   Alert,
   ScrollView,
+  AsyncStorage,
 } from 'react-native';
 import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -25,9 +26,6 @@ import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
 
-var ratio = 18.0;
-var correction = 3.5;
-var target = 5.0;
 class New extends Component<{}> {
 
   state = {
@@ -44,10 +42,32 @@ class New extends Component<{}> {
     custom:'',
     savedName:'',
     savedCarbs:'',
+    ratio: -1,
+    correction: -1,
+    target: -1,
   };
 
   componentWillMount() {
+    this.getSettings();
     this.getSaved();
+  }
+  async getSettings() { 
+    let ratio = await AsyncStorage.getItem('ratio'); 
+    let parsedRatio = await JSON.parse(ratio) || ''; 
+    
+    let correction = await AsyncStorage.getItem('correction'); 
+    let parsedCorrection = await JSON.parse(correction) || ''; 
+    
+    let target = await AsyncStorage.getItem('target'); 
+    let parsedTarget = await JSON.parse(target) || '';
+
+    console.log(parsedRatio+', '+parsedCorrection+', '+parsedTarget);
+  
+    this.setState({ 
+      ratio: parsedRatio,
+      correction: parsedCorrection,
+      target: parsedTarget,
+    });
   }
   getSaved() {
     try {
@@ -128,7 +148,7 @@ class New extends Component<{}> {
     this.setState({savedItems: savedItems, carbSelected: total});
   }
   openMFP(){
-
+    this.props.navigation.navigate("MFP");
   }
   searchSaved(search) {
     if (search==''){
@@ -145,6 +165,9 @@ class New extends Component<{}> {
     }
   }
   getDose() {
+    let ratio = this.state.ratio;
+    let correction = this.state.correction;
+    let target = this.state.target;
     if (this.state.currentBS == '') {
       alert('Enter Blood Sugar');
     }
@@ -152,7 +175,7 @@ class New extends Component<{}> {
       let bs = this.state.currentBS;
       let carbs = parseFloat(this.state.carbInput) + parseFloat(this.state.carbSelected);
       let total = carbs/ratio + (bs-target)/correction;
-      this.setState({recommended: total, dosageText: 'Take ' + total + ' units.'});
+      this.setState({recommended: total, dosageText: 'Take ' + parseFloat(total).toFixed(1) + ' units.'});
     }
   }
   addPress() {
@@ -181,7 +204,7 @@ class New extends Component<{}> {
       dose = parseFloat(this.state.custom).toFixed(1);
     }
 
-    let carbs = this.state.carbInput + this.state.carbSelected;
+    let carbs = parseFloat(this.state.carbInput) + parseFloat(this.state.carbSelected);
     carbs = Math.round(carbs);
     let bs = parseFloat(this.state.currentBS).toFixed(1);
     let notes = '';
@@ -196,7 +219,7 @@ class New extends Component<{}> {
     notes=notes.slice(0,-1);
 
     axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', {glucose: bs, dose: dose, carbs: carbs, isCustomDose: mode, notes: notes})
-    .then((response) => console.log(response));
+    .then(() => this.props.navigation.navigate("Logs"));
   }
   render() {
     return (
@@ -322,7 +345,7 @@ const styles = StyleSheet.create({
   buttonColumn: {
     flex:1,
     flexDirection:'column',
-    height:60,
+    height:70,
   },
   saveButton: {
     flex:1,
