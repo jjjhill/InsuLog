@@ -244,7 +244,7 @@ class New extends Component<{}> {
             <Text>Name: </Text>
             <TextInput value={this.state.savedName} onChangeText={(value) => this.setState({savedName: value})} style={{flex:3}}/>
             <Text>Carbs: </Text>
-            <TextInput value={this.state.savedCarbs} onChangeText={(value) => this.setState({savedCarbs: value})} style={{flex:1}}/>
+            <TextInput keyboardType='numeric' value={this.state.savedCarbs} onChangeText={(value) => this.setState({savedCarbs: value})} style={{flex:1}}/>
           </Display>
           <SavedList>
             {this.renderSavedItems()}
