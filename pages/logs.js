@@ -9,11 +9,12 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView
+  ScrollView,
+  FlatList,
 } from 'react-native';
 import Log from '../components/log';
 
-export default class Logs extends Component<{}> {
+export default class Logs extends Component {
   state = {
     logs: [],
   }
@@ -35,13 +36,17 @@ export default class Logs extends Component<{}> {
   }
   renderLogs() {
     return (
-      this.state.logs.map( (log) => 
-        <Log
-          key={log.id}
-          log={log}
-          deleteLog={this.getLogs.bind(this)}
-        />
-      )
+      <FlatList
+        data={this.state.logs}
+        renderItem={({item}) => 
+          <Log
+            key={item.id}
+            log={item}
+            deleteLog={this.getLogs.bind(this)}
+          />
+        }
+        keyExtractor={(item, index) => item.id}
+      />
     );
   }
   render() {

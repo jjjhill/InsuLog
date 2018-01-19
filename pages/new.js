@@ -17,6 +17,7 @@ import {
   Alert,
   ScrollView,
   AsyncStorage,
+  FlatList,
 } from 'react-native';
 import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -26,14 +27,14 @@ import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
 
-class New extends Component<{}> {
+class New extends Component {
 
   state = {
     savedItems: [],
     subItems: [],
     selectedItems: [],
     carbSelected: 0,
-    showSaved:false,
+    showSaved:true,
     showAdd:false,
     carbInput: 0,
     currentBS:0.0,
@@ -125,16 +126,18 @@ class New extends Component<{}> {
   }
   renderSavedItems() {
     return (
-      this.state.subItems.map((item) => 
-        <SavedItem 
-          key={item.id} 
-          item={item} 
-          onItemPress={this.onItemPress.bind(this)} 
-          selected={this.state.selectedItems} 
-          onMultiplierChange={this.onMultiplierChange.bind(this)}
-          deleteSaved={this.getSaved.bind(this)}
-        />
-      )
+      <FlatList
+        data={this.state.subItems}
+        renderItem={({item}) => 
+          <SavedItem 
+            item={item} 
+            onItemPress={this.onItemPress.bind(this)} 
+            selected={this.state.selectedItems} 
+            onMultiplierChange={this.onMultiplierChange.bind(this)}
+            deleteSaved={this.getSaved.bind(this)}
+          />}
+        keyExtractor={(item, index) => item.id}
+      />
     );
   }
   onMultiplierChange(item) {
