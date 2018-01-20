@@ -30,9 +30,9 @@ import SavedItem from '../components/saveditem';
 class New extends Component {
 
   state = {
-    savedItems: [],
-    subItems: [],
-    selectedItems: [],
+    savedItems: [], //all saved items
+    subItems: [], //what is displayed in the list
+    selectedItems: [], //highlighted
     carbSelected: 0,
     showSaved:true,
     showAdd:false,
@@ -41,6 +41,7 @@ class New extends Component {
     dosageText:'',
     recommended:'',
     custom:'',
+    savedSearch: '',
     savedName:'',
     savedCarbs:'',
     ratio: -1,
@@ -61,8 +62,6 @@ class New extends Component {
     
     let target = await AsyncStorage.getItem('target'); 
     let parsedTarget = await JSON.parse(target) || '';
-
-    console.log(parsedRatio+', '+parsedCorrection+', '+parsedTarget);
   
     this.setState({ 
       ratio: parsedRatio,
@@ -96,27 +95,31 @@ class New extends Component {
     let index = 0;
     let found=false;
     selectedItems.forEach(function(element) {
-      if (element.id == item.id) {
+      if (element.id === item.id) {
         index = currentIndex;
         found=true;
       }
       currentIndex++;
     }, this);
-    if (found){
+    if (found){ //then remove it
       selectedItems.splice(index, 1);
     }
-    else {
+    else { //then add it
       selectedItems.push(item);
     }
     let total = this.calculateTotalSelected();
+
     this.setState({
       selectedItems: selectedItems,
       carbSelected: total,
+      savedSearch:'',
+      //subItems: newOrder,
+      subItems:this.state.savedItems,
     });
   }
   calculateTotalSelected() {
     let selected = this.state.selectedItems;
-    let total=0;
+    let total = 0;
     let mult;
     selected.forEach(function(element) {
       mult = element.multiplier === '' ? 1 : parseFloat(element.multiplier);
@@ -155,7 +158,10 @@ class New extends Component {
   }
   searchSaved(search) {
     if (search==''){
-      this.setState({subItems: this.state.savedItems});
+      this.setState({
+        subItems: this.state.savedItems,
+        savedSearch: search
+      });
     }
     else {
       var options = {
@@ -164,7 +170,10 @@ class New extends Component {
         minMatchCharLength: 2,
       };
       var fuse = new Fuse(this.state.savedItems, options);
-      this.setState({subItems: fuse.search(search)});
+      this.setState({
+        subItems: fuse.search(search),
+        savedSearch: search
+      });
     }
   }
   getDose() {

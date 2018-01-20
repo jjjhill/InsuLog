@@ -6,6 +6,7 @@ class SavedItem extends Component {
     
     state = {
         selected: false,
+        multiplier: this.props.item.multiplier,
     }
     componentDidMount() {
         this.props.selected.forEach(function(element) {
@@ -35,7 +36,7 @@ class SavedItem extends Component {
                 <Text style={{color:'white'}}>{this.props.item.carbs}</Text>
                 <Text style={{fontSize:20, color:'white'}}> (</Text>
                 <Text style={{color:'white'}}>x</Text>
-                <TextInput style={{width:35, color:'white'}} keyboardType={'numeric'} onChangeText={(value) => this.onMultiplierChange(value)} value={String(this.props.item.multiplier)}/>
+                <TextInput style={{width:35, color:'white'}} keyboardType={'numeric'} onChangeText={(value) => this.onMultiplierChange(value)} value={String(this.state.multiplier)}/>
                 <Text style={{fontSize:20, color:'white'}}> )</Text>
             </TouchableOpacity>
         );
@@ -43,6 +44,7 @@ class SavedItem extends Component {
     onMultiplierChange(value) {
         let item = this.props.item;
         item.multiplier = value;
+        this.setState({multiplier: value});
         this.props.onMultiplierChange(item);
     }
     itemPress() {
