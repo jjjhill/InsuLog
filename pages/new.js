@@ -62,7 +62,12 @@ class New extends Component {
     
     let target = await AsyncStorage.getItem('target'); 
     let parsedTarget = await JSON.parse(target) || '';
-  
+    
+    if (!parsedRatio || !parsedCorrection || !parsedTarget) {
+      alert("Please first set your personal configuration.");
+      this.props.navigation.navigate("Settings");
+    }
+
     this.setState({ 
       ratio: parsedRatio,
       correction: parsedCorrection,
@@ -185,7 +190,7 @@ class New extends Component {
     }
     else {
       let bs = this.state.currentBS;
-      let carbs = parseFloat(this.state.carbInput) + parseFloat(this.state.carbSelected);
+      let carbs = this.state.carbInput === '' ? parseFloat(this.state.carbSelected) : parseFloat(this.state.carbInput) + parseFloat(this.state.carbSelected);
       let total = carbs/ratio + (bs-target)/correction;
       this.setState({recommended: total, dosageText: 'Take ' + parseFloat(total).toFixed(1) + ' units.'});
     }
