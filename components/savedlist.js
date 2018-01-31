@@ -6,9 +6,7 @@ const SavedList = (props) => {
   
     return (
         <View style = {styles.listBackground}>
-            <ScrollView>
-                {props.children}
-            </ScrollView>
+            {props.children}
         </View>
     );
 

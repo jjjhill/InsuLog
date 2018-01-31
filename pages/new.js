@@ -18,6 +18,7 @@ import {
   ScrollView,
   AsyncStorage,
   FlatList,
+  Keyboard
 } from 'react-native';
 import Fuse from 'fuse.js';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -27,6 +28,7 @@ import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
 
+var url = 'http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/';
 class New extends Component {
 
   state = {
@@ -76,7 +78,7 @@ class New extends Component {
   }
   getSaved() {
     try {
-      fetch('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved')
+      fetch(url + 'saved')
       .then(response => {
         let json = response.json();
         json.then(res => {
@@ -114,12 +116,21 @@ class New extends Component {
     }
     let total = this.calculateTotalSelected();
 
+    let newOrder = selectedItems.slice();
+
+    this.state.savedItems.forEach(savedItem => {
+      if (newOrder.indexOf(savedItem) == -1) {
+        newOrder.push(savedItem);
+      }
+    });
+
+
     this.setState({
       selectedItems: selectedItems,
       carbSelected: total,
       savedSearch:'',
-      //subItems: newOrder,
-      subItems:this.state.savedItems,
+      subItems: newOrder,
+      //subItems:this.state.savedItems,
     });
   }
   calculateTotalSelected() {
@@ -135,11 +146,13 @@ class New extends Component {
   renderSavedItems() {
     return (
       <FlatList
+        keyboardShouldPersistTaps={'always'}
+        keyboardDismissMode={'on-drag'}
         data={this.state.subItems}
         renderItem={({item}) => 
           <SavedItem 
             item={item} 
-            onItemPress={this.onItemPress.bind(this)} 
+            onItemPress={this.onItemPress.bind(this)}
             selected={this.state.selectedItems} 
             onMultiplierChange={this.onMultiplierChange.bind(this)}
             deleteSaved={this.getSaved.bind(this)}
@@ -209,9 +222,8 @@ class New extends Component {
   addSaved() {
     let name = this.state.savedName;
     let carbs = this.state.savedCarbs;
-    axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', {name: name, carbs: carbs})
+    axios.post(url + 'saved', {name: name, carbs: carbs})
     .then(() => this.getSaved());
-
   }
   saveLog(mode) {
     var dose;
@@ -228,14 +240,14 @@ class New extends Component {
     
     this.state.selectedItems.forEach(item => {
       notes=notes+item.name+"(x"+item.multiplier+"), ";
-      axios.put('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/saved', {
+      axios.put(url + 'saved', {
         id: item.id,
       }).then((res) => console.log(res));
     });
     notes=notes.slice(0,-1);
     notes=notes.slice(0,-1);
 
-    axios.post('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', {glucose: bs, dose: dose, carbs: carbs, isCustomDose: mode, notes: notes})
+    axios.post(url + 'logs', {glucose: bs, dose: dose, carbs: carbs, isCustomDose: mode, notes: notes})
     .then(() => this.props.navigation.navigate("Logs"));
   }
   render() {
