@@ -70,9 +70,7 @@ export default class Logs extends Component {
           </View>
         </View>
         <View style={{flex:10}}>
-          <ScrollView style={styles.logRows}>
-            {this.renderLogs()}
-          </ScrollView>
+          {this.renderLogs()}
         </View>
       </View>
     );
@@ -90,9 +88,6 @@ const styles = StyleSheet.create({
       flex:1,
       flexDirection:'row',
       marginBottom:2,
-  },
-  logRows: {
-    flex:1,
   },
   headerText: {
     color:'white',

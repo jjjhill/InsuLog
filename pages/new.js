@@ -49,6 +49,7 @@ class New extends Component {
     ratio: -1,
     correction: -1,
     target: -1,
+    searching: false,
   };
 
   componentWillMount() {
@@ -130,7 +131,7 @@ class New extends Component {
       carbSelected: total,
       savedSearch:'',
       subItems: newOrder,
-      //subItems:this.state.savedItems,
+      searching: false,
     });
   }
   calculateTotalSelected() {
@@ -178,7 +179,8 @@ class New extends Component {
     if (search==''){
       this.setState({
         subItems: this.state.savedItems,
-        savedSearch: search
+        savedSearch: search,
+        searching: false,
       });
     }
     else {
@@ -190,7 +192,8 @@ class New extends Component {
       var fuse = new Fuse(this.state.savedItems, options);
       this.setState({
         subItems: fuse.search(search),
-        savedSearch: search
+        savedSearch: search,
+        searching: true,
       });
     }
   }
@@ -208,15 +211,27 @@ class New extends Component {
       this.setState({recommended: total, dosageText: 'Take ' + parseFloat(total).toFixed(1) + ' units.'});
     }
   }
-  addPress() {
-    if (!this.state.showAdd) {
-      this.setState({showAdd: true});
+  multiButtonPress() {
+    if (this.state.searching) {
+      this.setState({
+        savedSearch:'',
+        searching: false,
+        subItems: this.state.savedItems,
+      });
     }
     else {
-      if (this.state.savedName != '' && this.state.savedCarbs != '') {
-        this.addSaved();        
+      if (!this.state.showAdd) {
+        this.setState({showAdd: true});
       }
-      this.setState({showAdd:false, savedName:'', savedCarbs:''});
+      else {
+        if (this.state.savedName != '' && this.state.savedCarbs != '') {
+          this.addSaved();        
+        }
+        this.setState({
+          showAdd:false, savedName:'', 
+          savedCarbs:'',
+        });
+      }
     }
   }
   addSaved() {
@@ -265,8 +280,8 @@ class New extends Component {
           <View style={{flexDirection:'row', alignSelf:'stretch', alignItems:'center', justifyContent:'center'}}>
             <Text>Search: </Text>
             <TextInput value={this.state.savedSearch} onChangeText={(value) => this.searchSaved(value)} style={styles.savedSearch}/>
-            <TouchableOpacity style={styles.addButton} onPress={() => this.addPress()}>
-              <Text style={{fontSize:20, color:'white'}}>+</Text>
+            <TouchableOpacity style={styles.addButton} onPress={() => this.multiButtonPress()}>
+              <Text style={{fontSize:20, color:'white'}}>{this.state.searching ? 'x' : '+'}</Text>
             </TouchableOpacity>
           </View>
           <Display style={styles.addSavedRow} enable={this.state.showAdd}>
