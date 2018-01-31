@@ -35,6 +35,7 @@ class New extends Component {
     savedItems: [], //all saved items
     subItems: [], //what is displayed in the list
     selectedItems: [], //highlighted
+    orderedItems: [], //selected items are first in the list
     carbSelected: 0,
     showSaved:true,
     showAdd:false,
@@ -131,6 +132,7 @@ class New extends Component {
       carbSelected: total,
       savedSearch:'',
       subItems: newOrder,
+      orderedItems: newOrder,
       searching: false,
     });
   }
@@ -178,9 +180,9 @@ class New extends Component {
   searchSaved(search) {
     if (search==''){
       this.setState({
-        subItems: this.state.savedItems,
         savedSearch: search,
         searching: false,
+        subItems: this.state.orderedItems,
       });
     }
     else {
@@ -212,11 +214,11 @@ class New extends Component {
     }
   }
   multiButtonPress() {
-    if (this.state.searching) {
+    if (this.state.searching) { //clear search bar
       this.setState({
         savedSearch:'',
         searching: false,
-        subItems: this.state.savedItems,
+        subItems: this.state.orderedItems,
       });
     }
     else {
@@ -230,6 +232,7 @@ class New extends Component {
         this.setState({
           showAdd:false, savedName:'', 
           savedCarbs:'',
+          subItems: this.state.orderedItems,
         });
       }
     }
