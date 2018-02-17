@@ -88,7 +88,11 @@ class New extends Component {
           res.forEach(function(element) {
             element.multiplier = 1;
           }, this);
-          this.setState({savedItems: res, subItems: res})
+          this.setState({
+            savedItems: res, 
+            subItems: res,
+            orderedItems: res,
+          })
         });
       });
     } catch (e) {
@@ -230,7 +234,8 @@ class New extends Component {
           this.addSaved();        
         }
         this.setState({
-          showAdd:false, savedName:'', 
+          showAdd:false, 
+          savedName:'', 
           savedCarbs:'',
           subItems: this.state.orderedItems,
         });
