@@ -1,9 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from 'react';
 import {
   StyleSheet,
@@ -23,7 +17,7 @@ export default class Logs extends Component {
   }
   getLogs() {
     try {
-      fetch('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs')
+      fetch('http://ec2-18-223-110-67.us-east-2.compute.amazonaws.com:3000/logs')
       .then(response => {
         let json = response.json();
         json.then(res => {

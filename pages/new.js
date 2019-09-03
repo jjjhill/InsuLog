@@ -1,9 +1,3 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, { Component } from 'react';
 import {
   Platform,
@@ -28,7 +22,7 @@ import Display from 'react-native-display';
 import SavedList from '../components/savedlist';
 import SavedItem from '../components/saveditem';
 
-var url = 'http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/';
+var url = 'http://ec2-18-223-110-67.us-east-2.compute.amazonaws.com:3000/';
 class New extends Component {
 
   state = {

@@ -18,7 +18,7 @@ export default class Log extends Component<{}> {
           [
             {text: 'Cancel', onPress: () => {}, style: 'cancel'},
             {text: 'Delete', onPress: () => 
-              axios.delete('http://ec2-35-182-90-15.ca-central-1.compute.amazonaws.com:3000/logs', { params: { id: this.props.log.id } })
+              axios.delete('http://ec2-18-223-110-67.us-east-2.compute.amazonaws.com:3000/logs', { params: { id: this.props.log.id } })
                   .then(() => this.props.deleteLog())
               }
           ]
